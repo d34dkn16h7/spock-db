@@ -24,14 +24,9 @@ newPID id s1 s2 s3 = Leaderboard id s1 s2 s3
 
 getByID (pid :: T.Text) = selectList [LeaderboardName ==. pid] []--[LimitTo 1]
 
---extract :: [Entity] -> [Leaderboard]
+updateScore' (pid :: T.Text) b (score :: Int) = updateWhere [LeaderboardName ==. pid] [b =. score]
+
 extract [] = []
 extract (e:ent) = eV : extract ent
 	where
 		eV = entityVal e
-
-{-
-extract (e:ent) = (newPID (leaderboardName eV) (leaderboardScoreEasy eV) (leaderboardScoreMedium eV) (leaderboardScoreHard eV) ) : extract ent
-	where
-		eV = entityVal e
--}

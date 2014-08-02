@@ -17,6 +17,8 @@ import Database.Persist.TH
 import Control.Applicative
 import Control.Monad
 
+data Difficulty = Easy | Medium | Hard deriving (Eq)
+
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Leaderboard
   name Text
