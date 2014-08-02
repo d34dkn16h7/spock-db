@@ -6,21 +6,20 @@ module DB where
 
 import Model
 import Data.Text
-import Database.Persist
-import Database.Persist.TH
-import Database.Persist.Sqlite as SQ
-import Control.Monad.IO.Class  (liftIO)
+import Database.Persist.Sqlite
 
 {- --- -}
 
-initDB = SQ.runSqlite "mydb.sqlite" $ SQ.runMigration migrateAll
+initDB = runSqlite "mydb.sqlite" $ runMigration migrateAll
 
-runDB action = SQ.runSqlite "mydb.sqlite" $ action
+runDB action = runSqlite "mydb.sqlite" $ action
 
-insertPerson person = runDB $ SQ.insert person
+insertPerson person = runDB $ insert person
 
 getByID (pid :: Text) =
 	runDB $ selectList [LeaderboardName ==. pid] [] --[LimitTo 1]
+
+uScore pid row score = updateRow pid row score
 
 updateRow (pid :: Text) rowToUpdate nVal = 
 	runDB $ updateWhere [LeaderboardName ==. pid] [rowToUpdate =. nVal]

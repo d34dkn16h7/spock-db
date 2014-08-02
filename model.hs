@@ -5,7 +5,6 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
-
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 
@@ -13,11 +12,9 @@ module Model where
 
 import Data.Text
 import Data.Aeson
-import Database.Persist.TH
-import Control.Applicative
 import Control.Monad
-
-data Difficulty = Easy | Medium | Hard deriving (Eq)
+import Control.Applicative
+import Database.Persist.TH
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Leaderboard
@@ -37,9 +34,9 @@ instance FromJSON Leaderboard where
  parseJSON _ = mzero
 
 instance ToJSON Leaderboard where
- toJSON (Leaderboard firstName lastName age likesPizza) =
-    object [ "name"  	   .= firstName
-           , "scoreEasy"   .= lastName
-           , "scoreMedium" .= age
-           , "scoreHard"   .= likesPizza
-             ]
+ toJSON (Leaderboard name sEasy sMedium sHard) =
+    object [ "name"  	   .= name
+           , "scoreEasy"   .= sEasy
+           , "scoreMedium" .= sMedium
+           , "scoreHard"   .= sHard
+           ]
