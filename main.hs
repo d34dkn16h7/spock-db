@@ -32,15 +32,14 @@ getPlayer = do
 	(Just pID :: Maybe T.Text) <- param "pID"
 	a <- liftIO $ DB.runDB $ DB.getByID pID
 	b <- liftIO $ print $ DB.extract a
-	--b <- liftIO $ return DB.extract a
-	json $ [ "asd" :: T.Text]
+	json $ DB.extract a
 
 postScore = do
 	(Just id :: Maybe T.Text) <- param "pID"
 	(Just s1 :: Maybe Int)    <- param "sE"
 	(Just s2 :: Maybe Int)    <- param "sM"
 	(Just s3 :: Maybe Int)    <- param "sH"
-	addPlayer $ newPID "id" s1 s2 s3	
+	addPlayer $ newPID id s1 s2 s3	
 	jSucces
 
 addPlayer player = liftIO $ DB.runDB $ DB.insertPerson player
