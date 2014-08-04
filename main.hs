@@ -21,37 +21,42 @@ runUrl = do
 		get  "/" 			  $ mainPage
 		get  "/get/:pID"	  $ getPlayer
 		post "/addPlayer"     $ addPlayer
-		post "/pScore/easy"   $ updateScore LeaderboardScoreEasy
-		post "/pScore/medium" $ updateScore LeaderboardScoreMedium
-		post "/pScore/hard"   $ updateScore LeaderboardScoreHard
+		post "/newName"       $ newName
+		post "/pScore/easy"   $ updateScore LeaderboardSEasy
+		post "/pScore/medium" $ updateScore LeaderboardSMedium
+		post "/pScore/hard"   $ updateScore LeaderboardSHard
 
 {- PAGES-}
 
 mainPage = html $ "<center><h1> Hi There! Well, you should go. </h1></center>"
 
 getPlayer = do
-	(Just pID :: Maybe Text) <- param "pID"
-	out <- liftIO $ DB.getByID pID
+	(Just id :: Maybe Int) <- param "pID"
+	liftIO $ DB.getByID id
+	out <- liftIO $ DB.getByID id
 	json $ DB.extract out
 
 addPlayer = do
-	(Just id :: Maybe Text) <- param "pID"
-	(Just s1 :: Maybe Int)  <- param "sEasy"
-	(Just s2 :: Maybe Int)  <- param "sMedium"
-	(Just s3 :: Maybe Int)  <- param "sHard"
-	liftIO $ DB.insertPerson $ newPID id s1 s2 s3	
+	(Just name :: Maybe Text) <- param "name"
+	rawID <- liftIO $ DB.insertPerson $ newPID name
+	json $ DB.getKeyOut rawID
+
+newName = do
+	(Just id :: Maybe Int) <- param "pID"
+	(Just nName :: Maybe Text) <- param "name"
+	liftIO $ DB.uName id LeaderboardName nName
 	jSucces
 
 updateScore row = do 
-			(Just id :: Maybe Text) <- param "pID"
-			(Just score :: Maybe Int) <- param "nScore"
-			liftIO $ DB.uScore id row score
-			jSucces
+	(Just id :: Maybe Int) <- param "pID"
+	(Just score :: Maybe Int) <- param "nScore"
+	liftIO $ DB.uScore id row score
+	jSucces
 
 emptyPage = text ""
 
 jSucces = json $ ["succes" :: Text]
 jFaid   = json $ ["fail" :: Text]
 
-newPID :: Text -> Int -> Int -> Int -> Leaderboard
-newPID id s1 s2 s3 = Leaderboard id s1 s2 s3
+newPID :: Text -> Leaderboard
+newPID id = Leaderboard id 0 0 0

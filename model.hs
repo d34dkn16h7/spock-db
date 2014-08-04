@@ -19,10 +19,14 @@ import Database.Persist.TH
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Leaderboard
   name Text
-  scoreEasy Int
-  scoreMedium Int
-  scoreHard Int
+  sEasy Int
+  sMedium Int
+  sHard Int
   deriving Show
+CPool
+	from Int
+	to Int
+	target Int
 |]
 
 instance FromJSON Leaderboard where

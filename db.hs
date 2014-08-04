@@ -16,13 +16,19 @@ runDB action = runSqlite "mydb.sqlite" $ action
 
 insertPerson person = runDB $ insert person
 
-getByID (pid :: Text) =
-	runDB $ selectList [LeaderboardName ==. pid] [] --[LimitTo 1]
+getByID (pid :: Int) = runDB $ selectList [LeaderboardId ==. (Key $ toPersistValue pid)] [] --[LimitTo 1]
 
-uScore pid row score = updateRow pid row score
+getKeyOut val = listToJSON [unKey val]
 
-updateRow (pid :: Text) rowToUpdate nVal = 
+uScore pid row score = updateRowsByID (Key $ toPersistValue pid) row score
+
+uName pid row nName = updateRowsByID (Key $ toPersistValue pid) row nName
+
+updateRowsByName (pid :: Text) rowToUpdate nVal = 
 	runDB $ updateWhere [LeaderboardName ==. pid] [rowToUpdate =. nVal]
+
+updateRowsByID pid rowToUpdate nVal = 
+	runDB $ updateWhere [LeaderboardId ==. pid] [rowToUpdate =. nVal]
 
 newPerson :: Text -> Int -> Int -> Int -> Leaderboard
 newPerson id s1 s2 s3 = Leaderboard id s1 s2 s3
