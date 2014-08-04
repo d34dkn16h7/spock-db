@@ -16,6 +16,8 @@ import Control.Monad
 import Control.Applicative
 import Database.Persist.TH
 
+data UserID = UserID { uID :: Int}
+
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Leaderboard
   name Text
@@ -44,3 +46,12 @@ instance ToJSON Leaderboard where
            , "scoreMedium" .= sMedium
            , "scoreHard"   .= sHard
            ]
+
+
+instance FromJSON UserID where
+ parseJSON (Object v) = UserID <$> v .: "uID"
+ parseJSON _ = mzero
+
+instance ToJSON UserID where
+ toJSON (UserID uid) =
+    object [ "uID" .= uid]

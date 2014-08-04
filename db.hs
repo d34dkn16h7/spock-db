@@ -1,11 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE TypeOperators #-}
 
 module DB where
 
 import Model
 import Data.Text
+import Data.Aeson
 import Database.Persist.Sqlite
 
 {- --- -}
@@ -18,8 +20,6 @@ insertPerson person = runDB $ insert person
 
 getByID (pid :: Int) = runDB $ selectList [LeaderboardId ==. (Key $ toPersistValue pid)] [] --[LimitTo 1]
 
-getKeyOut val = listToJSON [unKey val]
-
 uScore pid row score = updateRowsByID (Key $ toPersistValue pid) row score
 
 uName pid row nName = updateRowsByID (Key $ toPersistValue pid) row nName
@@ -29,6 +29,10 @@ updateRowsByName (pid :: Text) rowToUpdate nVal =
 
 updateRowsByID pid rowToUpdate nVal = 
 	runDB $ updateWhere [LeaderboardId ==. pid] [rowToUpdate =. nVal]
+
+
+getKeyOutJ' rawID = unKey rawID --mapToJSON [("uID" :: Text, unKey rawID)]
+ 
 
 newPerson :: Text -> Int -> Int -> Int -> Leaderboard
 newPerson id s1 s2 s3 = Leaderboard id s1 s2 s3

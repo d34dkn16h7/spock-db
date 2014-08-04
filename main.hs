@@ -39,7 +39,7 @@ getPlayer = do
 addPlayer = do
 	(Just name :: Maybe Text) <- param "name"
 	rawID <- liftIO $ DB.insertPerson $ newPID name
-	json $ DB.getKeyOut rawID
+	json $ DB.getKeyOutJ' rawID
 
 newName = do
 	(Just id :: Maybe Int) <- param "pID"
