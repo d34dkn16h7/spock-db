@@ -20,20 +20,29 @@ main = do
 runUrl = do
 		get  "/" 			  $ mainPage
 		get  "/get/:pID"	  $ getPlayer
+		get  "/getTop/easy"   $ getTop LeaderboardSEasy
+		get  "/getTop/medium" $ getTop LeaderboardSMedium
+		get  "/getTop/hard"   $ getTop LeaderboardSHard
+
 		post "/addPlayer"     $ addPlayer
-		post "/newName"       $ newName
+		post "/newName"       $ updateName
 		post "/pScore/easy"   $ updateScore LeaderboardSEasy
 		post "/pScore/medium" $ updateScore LeaderboardSMedium
 		post "/pScore/hard"   $ updateScore LeaderboardSHard
 
 {- PAGES-}
 
-mainPage = html $ "<center><h1> Hi There! Well, you should go. </h1></center>"
+mainPage = 
+	html $ "<center><h1> Hi There!\nYou shouldn't be here. This is a server for Leaderboard and stuff. Got anything to ask? \n Mail me : d34dkn16h7@gmail.com </h1></center>"
+
 
 getPlayer = do
 	(Just id :: Maybe Int) <- param "pID"
-	liftIO $ DB.getByID id
 	out <- liftIO $ DB.getByID id
+	json $ DB.extract out
+
+getTop sort = do
+	out <- liftIO $ DB.getTop sort
 	json $ DB.extract out
 
 addPlayer = do
@@ -41,7 +50,7 @@ addPlayer = do
 	rawID <- liftIO $ DB.insertPerson $ newPID name
 	json $ DB.getKeyOutJ' rawID
 
-newName = do
+updateName = do
 	(Just id :: Maybe Int) <- param "pID"
 	(Just nName :: Maybe Text) <- param "name"
 	liftIO $ DB.uName id LeaderboardName nName

@@ -20,6 +20,8 @@ insertPerson person = runDB $ insert person
 
 getByID (pid :: Int) = runDB $ selectList [LeaderboardId ==. (Key $ toPersistValue pid)] [] --[LimitTo 1]
 
+getTop sort = runDB $ selectList [] [Desc sort,LimitTo 10]
+
 uScore pid row score = updateRowsByID (Key $ toPersistValue pid) row score
 
 uName pid row nName = updateRowsByID (Key $ toPersistValue pid) row nName
@@ -28,10 +30,11 @@ updateRowsByName (pid :: Text) rowToUpdate nVal =
 	runDB $ updateWhere [LeaderboardName ==. pid] [rowToUpdate =. nVal]
 
 updateRowsByID pid rowToUpdate nVal = 
-	runDB $ updateWhere [LeaderboardId ==. pid] [rowToUpdate =. nVal]
+	runDB $ update pid [rowToUpdate =. nVal]
+	--runDB $ updateWhere [LeaderboardId ==. pid] [rowToUpdate =. nVal]
 
 
-getKeyOutJ' rawID = unKey rawID --mapToJSON [("uID" :: Text, unKey rawID)]
+getKeyOutJ' rawID = unKey rawID
  
 
 newPerson :: Text -> Int -> Int -> Int -> Leaderboard
