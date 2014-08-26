@@ -1,7 +1,7 @@
 GET
 	/get/{Int} -- return json ( s = done)
 
-	/getTop/ {easy | medium | hard} -- return json ( not done)
+	/getTop/  -- return json
 
 POST
 	/addPlayer -- return json ( s = done,u = done )
@@ -11,7 +11,7 @@ POST
 		id -- Int id
 		"name" -- new name
 
-	/pScore/ {easy | medium | hard} -- json succes ( s = done,u = done )
+	/pScore/ -- json succes ( s = done,u = done )
 		id -- Int id
 		nScore -- Int score
 

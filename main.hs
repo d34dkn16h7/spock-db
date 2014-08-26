@@ -18,17 +18,13 @@ main = do
 	spockT dPort id $ runUrl
 
 runUrl = do
-		get  "/" 			  $ mainPage
-		get  "/get/:pID"	  $ getPlayer
-		get  "/getTop/easy"   $ getTop LeaderboardSEasy
-		get  "/getTop/medium" $ getTop LeaderboardSMedium
-		get  "/getTop/hard"   $ getTop LeaderboardSHard
+		get  "/" 		  $ mainPage
+		get  "/get/:pID"  $ getPlayer
+		get  "/getTop"   $ getTop
 
-		post "/addPlayer"     $ addPlayer
-		post "/newName"       $ updateName
-		post "/pScore/easy"   $ updateScore LeaderboardSEasy
-		post "/pScore/medium" $ updateScore LeaderboardSMedium
-		post "/pScore/hard"   $ updateScore LeaderboardSHard
+		post "/addPlayer" $ addPlayer
+		post "/newName"   $ updateName
+		post "/pScore"   $ updateScore
 
 {- PAGES-}
 
@@ -41,8 +37,8 @@ getPlayer = do
 	out <- liftIO $ DB.getByID id
 	json $ DB.extract out
 
-getTop sort = do
-	out <- liftIO $ DB.getTop sort
+getTop = do
+	out <- liftIO $ DB.getTop
 	json $ DB.extract out
 
 addPlayer = do
@@ -53,13 +49,13 @@ addPlayer = do
 updateName = do
 	(Just id :: Maybe Int) <- param "pID"
 	(Just nName :: Maybe Text) <- param "name"
-	liftIO $ DB.uName id LeaderboardName nName
+	liftIO $ DB.uName id nName
 	jSucces
 
-updateScore row = do 
+updateScore = do 
 	(Just id :: Maybe Int) <- param "pID"
 	(Just score :: Maybe Int) <- param "nScore"
-	liftIO $ DB.uScore id row score
+	liftIO $ DB.uScore id score
 	jSucces
 
 emptyPage = text ""
@@ -68,4 +64,4 @@ jSucces = json $ ["succes" :: Text]
 jFaid   = json $ ["fail" :: Text]
 
 newPID :: Text -> Leaderboard
-newPID id = Leaderboard id 0 0 0
+newPID id = Leaderboard id 0

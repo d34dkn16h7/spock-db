@@ -20,25 +20,23 @@ insertPerson person = runDB $ insert person
 
 getByID (pid :: Int) = runDB $ selectList [LeaderboardId ==. (Key $ toPersistValue pid)] [] --[LimitTo 1]
 
-getTop sort = runDB $ selectList [] [Desc sort,LimitTo 10]
+getTop = runDB $ selectList [] [Desc LeaderboardScore,LimitTo 10]
 
-uScore pid row score = updateRowsByID (Key $ toPersistValue pid) row score
+uScore pid score = updateRowsByID (Key $ toPersistValue pid) LeaderboardScore score
 
-uName pid row nName = updateRowsByID (Key $ toPersistValue pid) row nName
+uName pid nName = updateRowsByID (Key $ toPersistValue pid) LeaderboardName nName
 
 updateRowsByName (pid :: Text) rowToUpdate nVal = 
 	runDB $ updateWhere [LeaderboardName ==. pid] [rowToUpdate =. nVal]
 
 updateRowsByID pid rowToUpdate nVal = 
 	runDB $ update pid [rowToUpdate =. nVal]
-	--runDB $ updateWhere [LeaderboardId ==. pid] [rowToUpdate =. nVal]
-
 
 getKeyOutJ' rawID = unKey rawID
  
 
-newPerson :: Text -> Int -> Int -> Int -> Leaderboard
-newPerson id s1 s2 s3 = Leaderboard id s1 s2 s3
+newPerson :: Text -> Int -> Leaderboard
+newPerson id s = Leaderboard id s
 
 extract [] = []
 extract (e:ent) = eV : extract ent

@@ -21,9 +21,7 @@ data UserID = UserID { uID :: Int}
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Leaderboard
   name Text
-  sEasy Int
-  sMedium Int
-  sHard Int
+  score Int
   deriving Show
 CPool
 	from Int
@@ -34,18 +32,13 @@ CPool
 instance FromJSON Leaderboard where
  parseJSON (Object v) =
     Leaderboard <$> v .: "name"
-	            <*> v .: "scoreEasy"
-	            <*> v .: "scoreMedium"
-	            <*> v .: "scoreHard"
+	            <*> v .: "score"
  parseJSON _ = mzero
 
 instance ToJSON Leaderboard where
- toJSON (Leaderboard name sEasy sMedium sHard) =
-    object [ "name"  	   .= name
-           , "scoreEasy"   .= sEasy
-           , "scoreMedium" .= sMedium
-           , "scoreHard"   .= sHard
-           ]
+ toJSON (Leaderboard name score) =
+    object [ "name"  .= name
+           , "score" .= score ]
 
 
 instance FromJSON UserID where
