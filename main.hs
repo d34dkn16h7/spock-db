@@ -20,11 +20,12 @@ main = do
 runUrl = do
 		get  "/" 		  $ mainPage
 		get  "/get/:pID"  $ getPlayer
-		get  "/getTop"   $ getTop
+		get  "/getTop"    $ getTop
 
 		post "/addPlayer" $ addPlayer
 		post "/newName"   $ updateName
-		post "/pScore"   $ updateScore
+		post "/pScore"    $ updateScore
+		post "/getRank"   $ getRank
 
 {- PAGES-}
 
@@ -40,6 +41,11 @@ getPlayer = do
 getTop = do
 	out <- liftIO $ DB.getTop
 	json $ DB.extract out
+
+getRank = do 
+	(Just score :: Maybe Int) <- param "nScore"
+	count <- liftIO $ DB.getPlayerRank score
+	json $ [count :: Int]
 
 addPlayer = do
 	(Just name :: Maybe Text) <- param "name"

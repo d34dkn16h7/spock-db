@@ -22,6 +22,8 @@ getByID (pid :: Int) = runDB $ selectList [LeaderboardId ==. (Key $ toPersistVal
 
 getTop = runDB $ selectList [] [Desc LeaderboardScore,LimitTo 10]
 
+getPlayerRank (val :: Int) = runDB $ Database.Persist.Sqlite.count [LeaderboardScore >. val]
+
 uScore pid score = updateRowsByID (Key $ toPersistValue pid) LeaderboardScore score
 
 uName pid nName = updateRowsByID (Key $ toPersistValue pid) LeaderboardName nName
