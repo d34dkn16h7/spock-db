@@ -37,8 +37,6 @@ suId pid = runDB $ update pid [LeaderboardDId =. (gInt $ keyOut pid)]
 
 muId pid = runDB $ update pid [CPoolDId =. (gInt $ keyOut pid)]
 
-setID pid c = runDB $ update pid [c =. (gInt $ keyOut pid)]
-
 {- Get -}
 getTop = runDB $ selectList [] [Desc LeaderboardScore, LimitTo 10]
 
