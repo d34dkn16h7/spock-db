@@ -35,31 +35,33 @@ main = do
 	spockT dPort id $ runUrl
 
 runUrl = do
-		get  "/" 		  $ mainPage
-		get  "/get/:pID"  $ getPlayer
-		get  "/getTop"    $ getTop
-		get  "/getTopC"   $ getTopC
+		get  "/" 		                $ mainPage
+		get  "/api/0.9/getTop"          $ getTop
+		get  "/api/0.9/getTopC"         $ getTopC
 
-		get  "/rUser"     $ getRandom
+		post "/api/0.9/get/"            $ getPlayer
+		post "/api/0.9/randomPlayer"    $ getRandomP
 
-		post "/addPlayer" $ addPlayer
-		post "/newName"   $ updateName
-		post "/pScore"    $ updateScore
-		post "/getRank"   $ getRank
-		post "/getRankC"  $ getRankC
+		post "/api/0.9/addPlayer"       $ addPlayer
+		post "/api/0.9/newName"         $ updateName
+		post "/api/0.9/pScore"          $ updateScore
+		post "/api/0.9/getRank"         $ getRank
+		post "/api/0.9/getRankC"        $ getRankC
 
-		post "/newChallenge"    $ newChallenge
-		post "/getChallenge"    $ getChallenge
-		post "/setChallenge"    $ setChallenge
-		post "/removeChallenge" $ removeChallenge
+		post "/api/0.9/newChallenge"    $ newChallenge
+		post "/api/0.9/getChallenge"    $ getChallenge
+		post "/api/0.9/setChallenge"    $ setChallenge
+		post "/api/0.9/removeChallenge" $ removeChallenge
 
 {- PAGES-}
 
 mainPage = 
 	html $ "<center><h1> Got anything to ask? \n Mail me : stanislavursache@outlook.com </h1></center>"
 
-getRandom = do
-	out <- liftIO $ DB.getPlayerRandom
+getRandomP = do
+	(Just pID :: Maybe Int) <- param k_playerID
+
+	out <- liftIO $ DB.getPlayerRandom pID
 	json $ (DB.extract out :: [Leaderboard]) --  :: [Int]
 
 getPlayer = do
@@ -93,7 +95,7 @@ addPlayer = do
 
 	rawID <- liftIO $ DB.insertPerson $ newPID name
 	liftIO $ DB.suId rawID
-	json $ DB.keyOut rawID
+	json $ DB.keyOutLB rawID
 
 updateName = do
 	(Just pID :: Maybe Int) <- param k_playerID
@@ -119,7 +121,7 @@ newChallenge = do
 
 	rawID <- liftIO $ DB.addMatch $ newMatch from to targetScore theme
 	liftIO $ DB.muId rawID
-	json $ DB.keyOut rawID
+	json $ DB.keyOutCP rawID
 
 getChallenge = do
 	(Just to :: Maybe Int) <- param k_CPto
