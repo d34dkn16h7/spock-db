@@ -9,66 +9,66 @@ import Model
 import Data.Text hiding(count)
 import Data.Aeson
 import Database.Persist.Sqlite
+import Control.Monad.Logger
+import Control.Monad.Trans
+import Control.Monad.Trans.Resource
 
 {- --- -}
+
 initDB = runSqlite "mydb.sqlite" $ runMigration migrateAll
 
 runDB action = runSqlite "mydb.sqlite" $ action
 
 {- Add -}
+
 insertPerson person = runDB $ insert person
 
 addMatch match = runDB $ insert match
 
 {- Update -}
-uMatchStat mid nStatus =
-	runDB $ update (toKeyCP mid) [CPoolStatus =. nStatus]
 
-uMatchTarget mid nStatus =
-	runDB $ update (toKeyCP mid) [CPoolTargetScore =. nStatus]
+uMatchStat mid nStatus   = uDB (toKeyCP mid) CPoolStatus nStatus
+uMatchTarget mid nStatus = uDB (toKeyCP mid) CPoolTargetScore nStatus
 
-uScore pid score =
-	runDB $ update (toKeyLB pid) [LeaderboardScore =. score]
+uScore pid score  = uDB (toKeyLB pid) PersonScore score
+uCScore (pid :: Int) = runDB $ update (toKeyLB pid) [PersonChallengeScore +=. 3]
+uName pid nName   = uDB (toKeyLB pid) PersonName nName
 
-uName pid nName =
-	runDB $ update (toKeyLB pid) [LeaderboardName =. nName]
-
-suId pid = runDB $ update pid [LeaderboardDId =. (gInt $ keyOutLB pid)]
-
-muId pid = runDB $ update pid [CPoolDId =. (gInt $ keyOutCP pid)]
+suId pid = uDB pid PersonDId (gInt $ keyOutLB pid)
+muId pid = uDB pid CPoolDId (gInt $ keyOutCP pid)
 
 {- Get -}
-getTop = runDB $ selectList [] [Desc LeaderboardScore, LimitTo 10]
 
-getTopChallenge = runDB $ selectList [] [Desc LeaderboardChallengeScore, LimitTo 10]
+getByID (pid :: Int) = sList (PersonId ==. toKeyLB pid)
 
-getByID (pid :: Int) = runDB $ selectList [LeaderboardId ==. (toKeyLB pid)] []
+getMatchTo   (pid :: Int) = sList (CPoolTo   ==. pid)
+getMatchFrom (pid :: Int) = sList (CPoolFrom ==. pid)
+getByMatchID (pid :: Int) = sList (CPoolId   ==. toKeyCP pid)
 
-getMatch (pid :: Int) = runDB $ selectList [CPoolTo ==. pid] []
+getTop = runDB $ selectList [] [Desc PersonScore, LimitTo 10]
+getTopChallenge = runDB $ selectList [] [Desc PersonChallengeScore, LimitTo 10]
 
-getByMatchID (pid :: Int) = runDB $ selectList [LeaderboardId ==. (toKeyLB pid)] []
+getPlayerRank  (score :: Int) = runDB $ count [PersonScore >. score]
+getPlayerRankC (score :: Int) = runDB $ count [PersonChallengeScore >. score]
 
-getPlayerRank (score :: Int) = runDB $ count [LeaderboardScore >. score]
-
-getPlayerRankC (score :: Int) = runDB $ count [LeaderboardChallengeScore >. score]
-
-getPlayerRandom w = (runDB $ rawSql (getWithout w)  [])
-
-getWithout w = append (append "select ?? from leaderboard where id!=" (pack $ show w)) " order by random() limit 1"
+getPlayerRandom w = (runDB $ rawSql (getWithout w) [])
 
 {- Remove -}
+
 removeMatch (mID :: Int) = runDB $ delete $ (toKeyCP mID :: CPoolId) 
 
 {- Tools -}
+
+uDB key wKey nVal = runDB $ update key [wKey =. nVal]
+
+sList exp = runDB $ selectList [exp] []
+
 gInt (SqlBackendKey k) = fromIntegral k
 
---keyOut key = unKey key
-
-keyOutLB (LeaderboardKey key) = key
+keyOutLB (PersonKey key) = key
 keyOutCP (CPoolKey key) = key
 
---toKey key = (Key $ PersistInt64 $ fromIntegral key)
-toKeyLB key = (LeaderboardKey $ fromIntegral key)
+toKeyLB key = (PersonKey $ fromIntegral key)
 toKeyCP key = (CPoolKey $ fromIntegral key)
 
 extract [] = []
@@ -76,16 +76,5 @@ extract (e:ent) = eV : extract ent
 	where
 		eV = entityVal e
 
-
-{-
-updateRowsByID pid rowToUpdate nVal =
-	runDB $ update (Key $ toPersistValue pid) [rowToUpdate =. nVal]
-
-updateRowsByName (pid :: Text) rowToUpdate nVal = 
-	runDB $ updateWhere [LeaderboardName ==. pid] [rowToUpdate =. nVal]
-
-extractKeys [] = []
-extractKeys (e:ent) = eV : extractKeys ent
-	where
-		eV = keyOut e
--}
+getWithout w = 
+	append (append "select ?? from Person where id!=" (pack $ show w)) " order by random() limit 1"

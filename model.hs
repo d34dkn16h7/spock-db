@@ -7,8 +7,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 
 module Model where
+
+import qualified Web.Spock.Simple as SP
 
 import Data.Text
 import Data.Aeson
@@ -16,10 +19,8 @@ import Control.Monad
 import Control.Applicative
 import Database.Persist.TH
 
-data UserID = UserID { uID :: Int}
-
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
-Leaderboard
+Person
   dId Int
   name Text
   score Int
@@ -34,16 +35,18 @@ CPool
   status Int
 |]
 
-instance FromJSON Leaderboard where
+{- JSON -}
+
+instance FromJSON Person where
  parseJSON (Object v) =
-    Leaderboard <$> v .: "dId"
+    Person <$> v .: "dId"
                 <*> v .: "name"
                 <*> v .: "score"
                 <*> v .: "challengeScore"
  parseJSON _ = mzero
 
-instance ToJSON Leaderboard where
- toJSON (Leaderboard dId name score challengeScore) =
+instance ToJSON Person where
+ toJSON (Person dId name score challengeScore) =
     object [ "dId"            .= dId
            , "name"           .= name
            , "score"          .= score 
@@ -68,10 +71,37 @@ instance ToJSON CPool where
            , "theme"       .= theme
            , "status"      .= status]
 
-instance FromJSON UserID where
- parseJSON (Object v) = UserID <$> v .: "uID"
- parseJSON _ = mzero
+{- Keys-}
 
-instance ToJSON UserID where
- toJSON (UserID uid) =
-    object [ "uID" .= uid]
+k_score      = "nScore" :: Text
+k_CScore     = "cScore" :: Text
+k_playerID   = "pID" :: Text
+k_playerName = "name" :: Text
+
+k_CPmatchID = "mID" :: Text
+k_CPfrom    = "from" :: Text
+k_CPto      = "to" :: Text
+k_CPtarget  = "targetScore" :: Text
+k_CPtheme   = "theme" :: Text
+k_CPstatus  = "status" :: Text
+
+ce_newMatch   = 0 :: Int
+ce_senderWin  = 1 :: Int
+ce_senderLose = 2 :: Int
+
+{- Tools -}
+
+jSucces = SP.json $ ["succes" :: Text]
+
+newPID name = Person (-1) name 0 0
+
+newMatch f t tS th = CPool (-1) f t tS th ce_newMatch
+
+centerT t = wrapT "<center>" "</center>" t
+h1T t = wrapT"<h1>" "</h1>" t
+
+wrapT b e t = append (append b t) e
+
+canLogin user pass = return (user == "test" && pass == "pass")
+
+auth action = SP.requireBasicAuth "AUTH" canLogin $ action
