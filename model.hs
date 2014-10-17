@@ -102,6 +102,8 @@ h1T t = wrapT"<h1>" "</h1>" t
 
 wrapT b e t = append (append b t) e
 
-canLogin user pass = return (user == "test" && pass == "pass")
+canLogin user pass = do
+  (_,u,p) <- SP.getState
+  return (u == user && p == pass)
 
 auth action = SP.requireBasicAuth "AUTH" canLogin $ action

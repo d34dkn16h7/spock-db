@@ -13,37 +13,43 @@ import qualified Challenge
 
 import Data.Text
 import Web.Spock.Simple
-import Control.Monad.IO.Class (liftIO)
 
 dPort = 3000
 
 main = do
 	DB.initDB
-	spockT dPort id $ runUrl
+	pool <- DB.createPool
+	DB.lockDB pool
 
--- fix <#> when subcomponent works
+	spock dPort sessCfg DB.gConnFake (pool,"user","pass") runUrl
+	where
+		sessCfg = SessionCfg "def" (0) 42 id
+	--spockT dPort id $ runUrl
+
 runUrl = do
-		post "/newPlayer"                  $ auth newPlayer
+		get  "/"            $ mainPage
+		post "/newPlayer"   $ auth newPlayer
 		
-		get  ("/get" <#> "/top")           $ Get.top
-		get  ("/get" <#> "/ctop")          $ Get.cTop
+		subcomponent "/get" $ do
+			get  "/top"     $      Get.top
+			get  "/ctop"    $      Get.cTop
+			post "/rank"    $ auth Get.rank
+			post "/crank"   $ auth Get.cRank
+			post "/player"  $ auth Get.player
+			post "/rplayer" $ auth Get.rPlayer
 
-		post ("/get" <#> "/rank")          $ auth Get.rank
-		post ("/get" <#> "/crank")         $ auth Get.cRank
+		subcomponent "/update" $ do
+			post "/name"       $ auth Update.name
+			post "/score"      $ auth Update.score
+			post "/cscore"     $ auth Update.cScore
 
-		post ("/get" <#> "/player")        $ auth Get.player
-		post ("/get" <#> "/rplayer")       $ auth Get.rPlayer
-
-		post ("/update" <#> "/name")       $ auth Update.name
-		post ("/update" <#> "/score")      $ auth Update.score
-		post ("/update" <#> "/cscore")     $ auth Update.cScore
-
-		post ("/challenge" <#> "/new")     $ auth Challenge.new
-		post ("/challenge" <#> "/set")     $ auth Challenge.set
-		post ("/challenge" <#> "/get")     $ auth Challenge.get
-		post ("/challenge" <#> "/getTo")   $ auth Challenge.getTo
-		post ("/challenge" <#> "/getFrom") $ auth Challenge.getFrom
-		post ("/challenge" <#> "/remove")  $ auth Challenge.remove
+		subcomponent "/challenge" $ do
+			post "/new"     	  $ auth Challenge.new
+			post "/set"     	  $ auth Challenge.set
+			post "/get"     	  $ auth Challenge.get
+			post "/getTo"   	  $ auth Challenge.getTo
+			post "/getFrom" 	  $ auth Challenge.getFrom
+			post "/remove"  	  $ auth Challenge.remove
 
 {- PAGES-}
 mainPage = html $ (centerT . h1T) "Mail me : stanislavursache@outlook.com"
@@ -51,6 +57,6 @@ mainPage = html $ (centerT . h1T) "Mail me : stanislavursache@outlook.com"
 newPlayer = do
 	(Just name :: Maybe Text) <- param k_playerName
 
-	rawID <- liftIO $ DB.insertPerson (newPID name)
-	liftIO $ DB.suId rawID
+	rawID <- DB.insertPerson (newPID name)
+	DB.suId rawID
 	json $ DB.keyOutLB rawID

@@ -4,31 +4,29 @@
 
 module Update where
 
+import qualified DB
+
 import Model
 import Data.Text
-import Control.Monad.IO.Class (liftIO)
-
-import qualified DB
-import qualified Web.Spock.Simple as SP
-
+import Web.Spock.Simple
 
 name = do
-	(Just pID :: Maybe Int) <- SP.param k_playerID
-	(Just nName :: Maybe Text) <- SP.param k_playerName
+	(Just pID :: Maybe Int) <- param k_playerID
+	(Just nName :: Maybe Text) <- param k_playerName
 
-	liftIO $ DB.uName pID nName
+	DB.uName pID nName
 	jSucces
 
 score = do 
-	(Just pID :: Maybe Int) <- SP.param k_playerID
-	(Just score :: Maybe Int) <- SP.param k_score
+	(Just pID :: Maybe Int) <- param k_playerID
+	(Just score :: Maybe Int) <- param k_score
 
-	liftIO $ DB.uScore pID score
+	DB.uScore pID score
 
-	playerRank <- liftIO $ DB.getPlayerRank $ score + 1
-	SP.json $ [playerRank :: Int]
+	playerRank <- DB.getPlayerRank (score + 1)
+	json $ [playerRank :: Int]
 
 cScore = do 
-	(Just pID :: Maybe Int) <- SP.param k_playerID
+	(Just pID :: Maybe Int) <- param k_playerID
 
-	liftIO $ DB.uCScore pID
+	DB.uCScore pID

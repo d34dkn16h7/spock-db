@@ -5,40 +5,38 @@
 module Get where
 
 import qualified DB
-import qualified Web.Spock.Simple as SP
 
 import Model
-import Data.Text
-import Control.Monad.IO.Class (liftIO)
+import Web.Spock.Simple
 
 player = do
-	(Just pID :: Maybe Int) <- SP.param k_playerID
+	(Just pID :: Maybe Int) <- param k_playerID
 
-	out <- liftIO $ DB.getByID pID
-	SP.json $ DB.extract out
+	out <- DB.getByID pID
+	json $ DB.extract out
 
 rPlayer = do
-	(Just pID :: Maybe Int) <- SP.param k_playerID
+	(Just pID :: Maybe Int) <- param k_playerID
 
-	out <- liftIO $ DB.getPlayerRandom pID
-	SP.json $ (DB.extract out :: [Person])
+	out <- DB.getPlayerRandom pID
+	json $ (DB.extract out :: [Person])
 
 top = do
-	out <- liftIO $ DB.getTop
-	SP.json $ DB.extract out
+	out <- DB.getTop
+	json $ DB.extract out
 
 cTop = do
-	out <- liftIO $ DB.getTopChallenge
-	SP.json $ DB.extract out
+	out <- DB.getTopChallenge
+	json $ DB.extract out
 
 rank = do 
-	(Just score :: Maybe Int) <- SP.param k_score
+	(Just score :: Maybe Int) <- param k_score
 
-	count <- liftIO $ DB.getPlayerRank $ score + 1
-	SP.json $ [count :: Int]
+	count <- DB.getPlayerRank (score + 1)
+	json $ [count :: Int]
 
 cRank = do 
-	(Just score :: Maybe Int) <- SP.param k_CScore
+	(Just score :: Maybe Int) <- param k_CScore
 
-	count <- liftIO $ DB.getPlayerRankC $ score + 1
-	SP.json $ [count :: Int]
+	count <- DB.getPlayerRankC (score + 1)
+	json $ [count :: Int]
